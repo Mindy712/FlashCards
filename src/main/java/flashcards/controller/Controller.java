@@ -25,6 +25,23 @@ public abstract class Controller {
         setUpPreparedStatements();
     }
 
+    private void setUpPreparedStatements() throws SQLException {
+        insertToMenuStmt = CONNECTION.prepareStatement("INSERT INTO '" + escapeApostrophes(MENU_TABLE)
+                + "' (deck_title) VALUES (?);");
+        removeCardStmt = CONNECTION.prepareStatement("DELETE FROM '" + escapeApostrophes(CARDS_TABLE) +
+                "' WHERE card_id = ?;");
+        deleteDeckStmt = CONNECTION.prepareStatement("DELETE from '" + escapeApostrophes(CARDS_TABLE) +
+                "'Where deck_id = (select id from menu where deck_title = ?);");
+        deleteMenuItemStmt = CONNECTION.prepareStatement("DELETE FROM '" + escapeApostrophes(MENU_TABLE) +
+                "' WHERE deck_title = ?;");
+        insertCardStmt = CONNECTION.prepareStatement("INSERT INTO '" + escapeApostrophes(CARDS_TABLE) +
+                "' (term, def, deck_id) VALUES (?, ?, (select id from menu where deck_title = ?));");
+        getDecksFromDBStmt = CONNECTION.prepareStatement("SELECT deck_title FROM '" +
+                escapeApostrophes(MENU_TABLE) + "';");
+        getCardsInDeckStmt = CONNECTION.prepareStatement("SELECT * FROM '" + escapeApostrophes(CARDS_TABLE) +
+                "'Where deck_id = (select id from menu where deck_title = ?);");
+    }
+
     /**
      * Adds new deck name to the menu that supplies UI with deck list
      *
@@ -166,23 +183,6 @@ public abstract class Controller {
     private void addCardFromDB(Deck deck, ResultSet rs) throws SQLException {
         deck.addCard(new Card(rs.getString("card_id"),
                 rs.getString("term"), rs.getString("def")));
-    }
-
-    private void setUpPreparedStatements() throws SQLException {
-        insertToMenuStmt = CONNECTION.prepareStatement("INSERT INTO '" + escapeApostrophes(MENU_TABLE)
-                + "' (deck_title) VALUES (?);");
-        removeCardStmt = CONNECTION.prepareStatement("DELETE FROM '" + escapeApostrophes(CARDS_TABLE) +
-                "' WHERE card_id = ?;");
-        deleteDeckStmt = CONNECTION.prepareStatement("DELETE from '" + escapeApostrophes(CARDS_TABLE) +
-                "'Where deck_id = (select id from menu where deck_title = ?);");
-        deleteMenuItemStmt = CONNECTION.prepareStatement("DELETE FROM '" + escapeApostrophes(MENU_TABLE) +
-                "' WHERE deck_title = ?;");
-        insertCardStmt = CONNECTION.prepareStatement("INSERT INTO '" + escapeApostrophes(CARDS_TABLE) +
-                "' (term, def, deck_id) VALUES (?, ?, (select id from menu where deck_title = ?));");
-        getDecksFromDBStmt = CONNECTION.prepareStatement("SELECT deck_title FROM '" +
-                escapeApostrophes(MENU_TABLE) + "';");
-        getCardsInDeckStmt = CONNECTION.prepareStatement("SELECT * FROM '" + escapeApostrophes(CARDS_TABLE) +
-                "'Where deck_id = (select id from menu where deck_title = ?);");
     }
 
     private String escapeApostrophes(String table) {
